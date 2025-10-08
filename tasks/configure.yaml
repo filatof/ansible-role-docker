@@ -4,11 +4,12 @@
 - name: Preinstall for Debian family OS
   when: ansible_os_family == "Debian"
   block:
-    - name: Add user 'fill' to docker group
+    - name: Add user to docker group
       ansible.builtin.user:
-        name: fill
+        name: "{{ item }}"
         groups: docker
         append: yes
+      loop: "{{docker_users}}"
 
     - name: Verify Docker installation
       ansible.builtin.command: docker --version

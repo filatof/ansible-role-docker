@@ -8,7 +8,7 @@
     - name: Set docker package version string
       set_fact:
         docker_package_version: >-
-          {{ version }}~{{ ansible_distribution | lower }}{% if ansible_distribution == "Debian" %}.{{ ansible_distribution_version.split('.')[0] }}{% else %}.{{ ansible_distribution_version }}{% endif %}~{{ ansible_distribution_release | lower }}
+          {{ docker_version }}~{{ ansible_distribution | lower }}{% if ansible_distribution == "Debian" %}.{{ ansible_distribution_version.split('.')[0] }}{% else %}.{{ ansible_distribution_version }}{% endif %}~{{ ansible_distribution_release | lower }}
 
     - name: Install specific version of Docker Engine
       ansible.builtin.apt:

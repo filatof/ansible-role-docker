@@ -1,38 +1,106 @@
-Role Name
-=========
+# Ansible Role: Docker / Podman
 
-A brief description of the role goes here.
+Ansible роль для установки и настройки Docker или Podman в зависимости от семейства операционной системы.
 
-Requirements
-------------
+- **Debian/Ubuntu**: устанавливается Docker
+- **RedHat/CentOS/Rocky/AlmaLinux**: устанавливается Podman
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+## Требования
 
-Role Variables
---------------
+- Ansible >= 2.9
+- Поддерживаемые ОС:
+  - Ubuntu 20.04, 22.04, 24.04
+  - Debian 10, 11, 12
+  - CentOS 8, 9
+  - Rocky Linux 8, 9
+  - AlmaLinux 8, 9
+  - RHEL 8, 9
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+## Переменные роли
 
-Dependencies
-------------
+Доступные переменные и их значения по умолчанию (см. `defaults/main.yml`):
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+```yaml
+# Версия Docker для установки (для Debian/Ubuntu)
+docker_version: "latest"
 
-Example Playbook
-----------------
+# Добавлять ли пользователей в группу docker
+docker_users: []
+# docker_users:
+#   - username1
+#   - username2
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+# Установить Docker Compose (для Debian/Ubuntu)
+docker_install_compose: true
+docker_compose_version: "latest"
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+# Версия Podman (для RedHat-based систем)
+podman_version: "latest"
 
-License
--------
+# Настройки Podman
+podman_registries:
+  - docker.io
+  - quay.io
+```
 
-BSD
+## Зависимости
 
-Author Information
-------------------
+Роль не имеет зависимостей от других ролей.
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+## Примеры использования
+
+### Базовая установка
+
+```yaml
+- hosts: all
+  become: yes
+  roles:
+    - ansible-role-docker
+```
+
+### С пользовательскими настройками
+
+```yaml
+- hosts: docker_servers
+  become: yes
+  roles:
+    - role: ansible-role-docker
+      vars:
+        docker_users:
+          - deploy
+          - developer
+```
+
+### Установка конкретной версии
+
+```yaml
+- hosts: production
+  become: yes
+  roles:
+    - role: ansible-role-docker
+      vars:
+        docker_version: "24.0.7"
+        docker_compose_version: "2.23.0"
+```
+
+### Настройка для RedHat с Podman
+
+```yaml
+- hosts: rhel_servers
+  become: yes
+  roles:
+    - role: ansible-role-docker
+      vars:
+        podman_registries:
+          - docker.io
+          - registry.redhat.io
+          - quay.io
+```
+
+## Лицензия
+
+MIT
+
+## Автор
+
+Эта роль создана и поддерживается [filatof](https://github.com/filatof).
