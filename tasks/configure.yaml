@@ -1,14 +1,20 @@
-- name: Add user 'fill' to docker group
-  ansible.builtin.user:
-    name: fill
-    groups: docker
-    append: yes
+# ======================
+# Debian / Ubuntu → Docker
+# ======================
+- name: Preinstall for Debian family OS
+  when: ansible_os_family == "Debian"
+  block:
+    - name: Add user 'fill' to docker group
+      ansible.builtin.user:
+        name: fill
+        groups: docker
+        append: yes
 
-- name: Verify Docker installation
-  ansible.builtin.command: docker --version
-  register: docker_version
-  changed_when: false
+    - name: Verify Docker installation
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
 
-- name: Show Docker version
-  ansible.builtin.debug:
-    msg: "{{ docker_version.stdout }}"
+    - name: Show Docker version
+      ansible.builtin.debug:
+        msg: "{{ docker_version.stdout }}"

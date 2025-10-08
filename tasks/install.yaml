@@ -1,28 +1,47 @@
 ---
-#- name: Install specific version of Docker Engine
-#  ansible.builtin.apt:
-#    name:
-#      - "docker-ce={{ version }}~{{ ansible_distribution | lower  }}.{{ ansible_distribution_version }}~{{ ansible_distribution_release | lower }}"
-#      - "docker-ce-cli={{ version }}~{{ ansible_distribution | lower  }}.{{ ansible_distribution_version }}~{{ ansible_distribution_release | lower }}"
-#      - "containerd.io"
-#    state: present
-#    update_cache: yes
-- name: Set docker package version string
-  set_fact:
-    docker_package_version: >-
-      {{ version }}~{{ ansible_distribution | lower }}{% if ansible_distribution == "Debian" %}.{{ ansible_distribution_version.split('.')[0] }}{% else %}.{{ ansible_distribution_version }}{% endif %}~{{ ansible_distribution_release | lower }}
+# ======================
+# Debian / Ubuntu → Docker
+# ======================
+- name: Preinstall for Debian family OS
+  when: ansible_os_family == "Debian"
+  block:
+    - name: Set docker package version string
+      set_fact:
+        docker_package_version: >-
+          {{ version }}~{{ ansible_distribution | lower }}{% if ansible_distribution == "Debian" %}.{{ ansible_distribution_version.split('.')[0] }}{% else %}.{{ ansible_distribution_version }}{% endif %}~{{ ansible_distribution_release | lower }}
 
-- name: Install specific version of Docker Engine
-  ansible.builtin.apt:
-    name:
-      - "docker-ce={{ docker_package_version }}"
-      - "docker-ce-cli={{ docker_package_version }}"
-      - "containerd.io"
-    state: present
-    update_cache: yes
+    - name: Install specific version of Docker Engine
+      ansible.builtin.apt:
+        name:
+          - "docker-ce={{ docker_package_version }}"
+          - "docker-ce-cli={{ docker_package_version }}"
+          - "containerd.io"
+        state: present
+        update_cache: yes
 
-- name: Ensure Docker service is running
-  ansible.builtin.service:
-    name: docker
-    state: started
-    enabled: true
+    - name: Ensure Docker service is running
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+# ======================
+# Fedora / RHEL → Podman
+# ======================
+- name: Preinstall for RedHat family OS
+  when: ansible_os_family == "RedHat"
+  block:
+    - name: Install Podman
+      ansible.builtin.dnf:
+        name: podman
+        state: present
+      become: yes
+
+    - name: Podman version
+      ansible.builtin.command: podman --version
+      register: podman_version_check
+      changed_when: false
+
+    - name: View version Podman
+      ansible.builtin.debug:
+        msg: "{{ podman_version_check.stdout }}"

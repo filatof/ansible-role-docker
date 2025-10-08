@@ -3,39 +3,51 @@
   debug:
     msg: "Detected OS family: {{ ansible_os_family }}"
 
-- name: Fail if OS family is RedHat
+# ======================
+# Debian / Ubuntu → Docker
+# ======================
+- name: Preinstall for Debian family OS
+  when: ansible_os_family == "Debian"
+  block:
+    - name: Set docker_arch based on architecture
+      set_fact:
+        docker_arch: "{{ 'amd64' if 'x86_64' in ansible_architecture else 'arm64' }}"
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install prerequisite packages
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Add Docker GPG key
+      ansible.builtin.apt_key:
+        url: "https://download.docker.com/linux/{{ ansible_distribution | lower  }}/gpg"
+        state: present
+
+    - name: Add Docker repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ docker_arch }}] https://download.docker.com/linux/{{ ansible_distribution | lower  }} {{ ansible_lsb.codename }} stable"
+        state: present
+
+    - name: Update apt cache after adding Docker repo
+      ansible.builtin.apt:
+        update_cache: yes
+
+# ======================
+# Fedora / RHEL → Podman
+# ======================
+- name: Preinstall for RedHat family OS
   when: ansible_os_family == "RedHat"
-  fail:
-    msg: "This is role for family of Debian (Debian/Ubuntu)."
-
-- name: Set docker_arch based on architecture
-  set_fact:
-    docker_arch: "{{ 'amd64' if 'x86_64' in ansible_architecture else 'arm64' }}"
-
-- name: Update apt cache
-  ansible.builtin.apt:
-    update_cache: yes
-
-- name: Install prerequisite packages
-  ansible.builtin.apt:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gnupg
-      - lsb-release
-    state: present
-
-- name: Add Docker GPG key
-  ansible.builtin.apt_key:
-    url: "https://download.docker.com/linux/{{ ansible_distribution | lower  }}/gpg"
-    state: present
-
-- name: Add Docker repository
-  ansible.builtin.apt_repository:
-    repo: "deb [arch={{ docker_arch }}] https://download.docker.com/linux/{{ ansible_distribution | lower  }} {{ ansible_lsb.codename }} stable"
-    state: present
-
-- name: Update apt cache after adding Docker repo
-  ansible.builtin.apt:
-    update_cache: yes
+  block:
+    - name: Update dnf cache
+      ansible.builtin.dnf:
+        update_cache: yes
+      become: yes
