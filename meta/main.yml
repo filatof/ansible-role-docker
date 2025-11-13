@@ -3,6 +3,7 @@ galaxy_info:
   author: fill
   description: ansible role install docker
   company: EQ
+  role_name: docker
 
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value
